@@ -1,0 +1,18 @@
+# Build the Go Binary.
+FROM golang:1.18 as build_sales-api
+# disabled CGO
+ENV CGO_ENABLED 0
+# version of the appe
+ARG BUILD_REF
+
+COPY . /service
+
+WORKDIR /service
+RUN go build -ldflags "-X main.build=-${BUILD_REF}"
+
+FROM alpine:3.14
+ARG BUILD_DATE
+ARG BUILD_REF
+COPY --from=build_sales-api /service /service/service
+WORKDIR /service
+CMD ["./service"]
