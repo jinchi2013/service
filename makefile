@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 run:
-	go run app/services/sales-api/main.go
+	go run app/services/sales-api/main.go | go run app/services/tooling/logfmt/main.go
 
 # ==============================================================================
 # Building containers
@@ -55,7 +55,7 @@ kind-status-sales:
 	kubectl get pods -o wide --watch --namespace=sales-system
 
 kind-logs:
-	kubectl logs -l app=sales --all-containers=true -f --tail=100
+	kubectl logs -l app=sales --all-containers=true -f --tail=100 | go run app/services/tooling/logfmt/main.go
 
 kind-describe:
 	kubectl describe nodes
