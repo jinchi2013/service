@@ -4,6 +4,10 @@ run:
 	go run app/services/sales-api/main.go | go run app/services/tooling/logfmt/main.go
 
 # ==============================================================================
+# Test running system
+# expvarmon -ports=":4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
+
+# ==============================================================================
 # Building containers
 
 VERSION := 1.0
