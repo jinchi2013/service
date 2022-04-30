@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"expvar"
 	"net/http"
 	"net/http/pprof"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/dimfeld/httptreemux/v5"
 	"github.com/jinchi2013/service/app/services/sales-api/handlers/checkgrp"
+	"github.com/jinchi2013/service/app/services/sales-api/handlers/v1/testgrp"
 	"go.uber.org/zap"
 )
 
@@ -34,13 +34,13 @@ func DebugMux(build string, log *zap.SugaredLogger) *http.ServeMux {
 	mux := DebugStandardLibraryMux()
 
 	// Regster debug check endpoint
-	cfg := checkgrp.Handlers{
+	cgh := checkgrp.Handlers{ // health check handlers group
 		Build: build,
 		Log:   log,
 	}
 
-	mux.HandleFunc("/debug/readiness", cfg.Readiness)
-	mux.HandleFunc("/debug/liveness", cfg.Liveness)
+	mux.HandleFunc("/debug/readiness", cgh.Readiness)
+	mux.HandleFunc("/debug/liveness", cgh.Liveness)
 
 	return mux
 }
@@ -54,16 +54,11 @@ type APIMuxConfig struct {
 func APIMux(cfg APIMuxConfig) *httptreemux.ContextMux {
 	mux := httptreemux.NewContextMux()
 
-	h := func(w http.ResponseWriter, r *http.Request) {
-		status := struct {
-			Status string
-		}{
-			Status: "ok",
-		}
-
-		json.NewEncoder(w).Encode(status)
+	// Test handlers group
+	tgh := testgrp.Handlers{
+		Log: cfg.Log,
 	}
 
-	mux.Handle(http.MethodGet, "/test", h)
+	mux.Handle(http.MethodGet, "/v1/test", tgh.Test)
 	return mux
 }
