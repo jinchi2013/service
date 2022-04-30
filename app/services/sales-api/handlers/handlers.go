@@ -40,6 +40,7 @@ func DebugMux(build string, log *zap.SugaredLogger) *http.ServeMux {
 	}
 
 	mux.HandleFunc("/debug/readiness", cfg.Readiness)
+	mux.HandleFunc("/debug/liveness", cfg.Liveness)
 
 	return mux
 }
