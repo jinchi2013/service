@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/dimfeld/httptreemux/v5"
+	"github.com/jinchi2013/service/app/services/sales-api/handlers/checkgrp"
 	"go.uber.org/zap"
 )
 
@@ -25,6 +26,20 @@ func DebugStandardLibraryMux() *http.ServeMux {
 	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	mux.Handle("/debug/vars", expvar.Handler())
+
+	return mux
+}
+
+func DebugMux(build string, log *zap.SugaredLogger) *http.ServeMux {
+	mux := DebugStandardLibraryMux()
+
+	// Regster debug check endpoint
+	cfg := checkgrp.Handlers{
+		Build: build,
+		Log:   log,
+	}
+
+	mux.HandleFunc("/debug/readiness", cfg.Readiness)
 
 	return mux
 }
