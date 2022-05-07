@@ -16,16 +16,8 @@ func (h Handlers) Test(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	status := struct {
 		Status string
 	}{
-		Status: "ok",
+		Status: "ok_1",
 	}
-
-	statusCode := http.StatusOK
-	h.Log.Infow("TEST_V1",
-		"statusCode", statusCode,
-		"method", r.Method,
-		"path", r.URL.Path,
-		"remoteaddr", r.RemoteAddr,
-	)
 
 	return json.NewEncoder(w).Encode(status)
 }

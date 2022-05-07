@@ -13,14 +13,16 @@ import (
 type App struct {
 	*httptreemux.ContextMux
 	shutdown chan os.Signal
+	mw       []Middleware
 }
 
 type Handler func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
 
-func NewApp(shutdown chan os.Signal) *App {
+func NewApp(shutdown chan os.Signal, mw ...Middleware) *App {
 	return &App{
 		ContextMux: httptreemux.NewContextMux(),
 		shutdown:   shutdown,
+		mw:         mw,
 	}
 }
 
@@ -28,16 +30,16 @@ func (a *App) Shutdown() {
 	a.shutdown <- syscall.SIGTERM
 }
 
-func (a *App) Handle(method string, group string, path string, handler Handler) {
+func (a *App) Handle(method string, group string, path string, handler Handler, mw ...Middleware) {
+
+	wrapMiddleware(mw, handler)
+
+	wrapMiddleware(a.mw, handler)
 
 	h := func(w http.ResponseWriter, r *http.Request) {
-		// Pre Code handle
 		if err := handler(r.Context(), w, r); err != nil {
-			// Handle error
 			return
 		}
-
-		// Post  Code handle
 	}
 
 	finalPath := ""
@@ -46,4 +48,8 @@ func (a *App) Handle(method string, group string, path string, handler Handler) 
 	}
 
 	a.ContextMux.Handle(method, finalPath, h)
+}
+
+func GetValues(ctx context.Context) (string, error) {
+	return "ok", nil
 }

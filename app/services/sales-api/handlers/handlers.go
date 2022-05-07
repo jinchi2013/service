@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"expvar"
 	"net/http"
 	"net/http/pprof"
@@ -51,8 +52,48 @@ type APIMuxConfig struct {
 	Log      *zap.SugaredLogger
 }
 
+func mwLogger(log *zap.SugaredLogger) web.Middleware {
+	mw := func(handler web.Handler) web.Handler {
+
+		h := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+			// If the context is missing this value, request the service
+			// to be shutdown gracefully.
+			v, err := web.GetValues(ctx)
+
+			if err != nil {
+				return err
+			}
+
+			log.Infow("Request Started",
+				"statusCode", v,
+				"method", r.Method,
+				"path", r.URL.Path,
+				"remoteaddr", r.RemoteAddr,
+			)
+
+			err = handler(ctx, w, r)
+
+			log.Infow("Request Completed",
+				"statusCode", v,
+				"method", r.Method,
+				"path", r.URL.Path,
+				"remoteaddr", r.RemoteAddr,
+			)
+
+			return err
+		}
+
+		return h
+	}
+
+	return mw
+}
+
 func APIMux(cfg APIMuxConfig) *web.App {
-	app := web.NewApp(cfg.Shutdown)
+	app := web.NewApp(
+		cfg.Shutdown,
+		mwLogger(cfg.Log),
+	)
 
 	// Load routes for different version of api
 	v1(app, cfg)
