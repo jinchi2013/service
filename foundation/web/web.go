@@ -32,9 +32,9 @@ func (a *App) Shutdown() {
 
 func (a *App) Handle(method string, group string, path string, handler Handler, mw ...Middleware) {
 
-	wrapMiddleware(mw, handler)
+	handler = wrapMiddleware(mw, handler)
 
-	wrapMiddleware(a.mw, handler)
+	handler = wrapMiddleware(a.mw, handler)
 
 	h := func(w http.ResponseWriter, r *http.Request) {
 		if err := handler(r.Context(), w, r); err != nil {
