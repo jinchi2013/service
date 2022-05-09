@@ -15,15 +15,13 @@ func Logger(log *zap.SugaredLogger) web.Middleware {
 			// If the context is missing this value, request the service
 			// to be shutdown gracefully.
 			v, err := web.GetValues(ctx)
-			now := time.Now()
 
 			if err != nil {
 				return err
 			}
 
 			log.Infow("Request Started",
-				"traceID", "00000000000000000",
-				"statusCode", v,
+				"traceid", v.TraceID,
 				"method", r.Method,
 				"path", r.URL.Path,
 				"remoteaddr", r.RemoteAddr,
@@ -32,14 +30,14 @@ func Logger(log *zap.SugaredLogger) web.Middleware {
 			err = handler(ctx, w, r)
 
 			log.Infow("Request Completed",
-				"traceID", "00000000000000000",
-				"statusCode", v,
+				"traceid", v.TraceID,
 				"method", r.Method,
 				"path", r.URL.Path,
 				"remoteaddr", r.RemoteAddr,
-				"since", time.Since(now),
+				"statusCode", v.StatusCode,
+				"since", time.Since(v.Now),
 			)
-
+			// Return the error so it can be handled further up the chain.
 			return err
 		}
 
