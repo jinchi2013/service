@@ -9,8 +9,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// Logger writes some information about the request to the logs in the
+// format: TraceID : (200) GET /foo -> IP ADDR (latency)
 func Logger(log *zap.SugaredLogger) web.Middleware {
+
+	// This is the actual middleware function to be executed.
 	m := func(handler web.Handler) web.Handler {
+
+		// Create the handler that will be attached in the middleware chain.
 		h := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 			// If the context is missing this value, request the service
 			// to be shutdown gracefully.
@@ -18,6 +24,7 @@ func Logger(log *zap.SugaredLogger) web.Middleware {
 
 			if err != nil {
 				return err
+				// return web.NewShutdownError("web value missing from context")
 			}
 
 			log.Infow("Request Started",
@@ -27,6 +34,7 @@ func Logger(log *zap.SugaredLogger) web.Middleware {
 				"remoteaddr", r.RemoteAddr,
 			)
 
+			// Call the next handler.
 			err = handler(ctx, w, r)
 
 			log.Infow("Request Completed",
@@ -37,6 +45,7 @@ func Logger(log *zap.SugaredLogger) web.Middleware {
 				"statusCode", v.StatusCode,
 				"since", time.Since(v.Now),
 			)
+
 			// Return the error so it can be handled further up the chain.
 			return err
 		}
