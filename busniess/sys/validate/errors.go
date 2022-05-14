@@ -8,8 +8,8 @@ import (
 // ErrInvalidID occurs when an ID is not in a valid form
 var ErrInvalidID = errors.New("ID is not in its proper form")
 
-// ErrResponse is  the form used for API responses from failures in the API
-type ErrResponse struct {
+// ErrorResponse is  the form used for API responses from failures in the API
+type ErrorResponse struct {
 	Error string `json:"error"`
 	Field string `json:"fields,omitempty"`
 }
