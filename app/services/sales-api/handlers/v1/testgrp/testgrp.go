@@ -16,14 +16,17 @@ type Handlers struct {
 }
 
 func (h Handlers) Test(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	n := rand.Intn(100)
-	if n < 40 {
+	n := rand.Intn(10)
+	// if n < 8 {
+	// 	panic("testing panic")
+	// }
+	if n < 6 {
 		return errors.New("untrusted error")
 	}
-	if n < 80 {
+	if n < 9 {
 		return validate.NewRequestError(errors.New("trusted error"), http.StatusBadRequest)
 	}
-	if n < 100 {
+	if n < 10 {
 		return web.NewShutdownError("Restart service")
 	}
 	status := struct {
