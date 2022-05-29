@@ -21,6 +21,12 @@ run:
 admin:
 	go run app/tooling/admin/main.go
 
+genKey:
+	go run app/tooling/admin/genKey/main.go
+
+genToken:
+	go run app/tooling/admin/genToken/main.go
+
 # ==============================================================================
 # Building containers
 
