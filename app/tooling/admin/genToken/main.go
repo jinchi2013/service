@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -85,14 +86,14 @@ func genToken() error {
 	token.Header["kid"] = "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"
 
 	// Use the private key to sign the signature
-	str, err := token.SignedString(privateKey)
+	tokenStr, err := token.SignedString(privateKey)
 
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("======== TOKEN BEGIN ========")
-	fmt.Println(str) // print signed token
+	fmt.Println(tokenStr) // print signed token
 	fmt.Println("======== TOKEN END ========")
 	fmt.Println("======== ======== ======== ======== ======== ========")
 
@@ -115,6 +116,49 @@ func genToken() error {
 	if err := pem.Encode(os.Stdout, &publicBlock); err != nil {
 		return fmt.Errorf("encoding to public file: %w", err)
 	}
+
+	fmt.Println("======== ======== ======== ======== ======== ========")
+	fmt.Println("======== Validate Token By Public Key ========")
+
+	parser := jwt.Parser{
+		ValidMethods: []string{"RS256"},
+	}
+
+	var parsedClaims struct {
+		jwt.StandardClaims
+		Roles []string
+	}
+
+	// keyFunc returns the public key by kid in token header
+	keyFunc := func(t *jwt.Token) (any, error) {
+		kid, ok := t.Header["kid"]
+		if !ok {
+			return nil, errors.New("Missing key id in token header")
+		}
+		kidID, ok := kid.(string)
+
+		if !ok {
+			return nil, errors.New("user token key id must be a string")
+		}
+
+		fmt.Println("Kid ::", kidID)
+		// we will need a to do a public key look up by the key id, which we don't have now
+		// return keyLookup.PublicKey(kidId)
+
+		return &privateKey.PublicKey, nil
+	}
+
+	parsedToken, err := parser.ParseWithClaims(tokenStr, &parsedClaims, keyFunc)
+
+	if err != nil {
+		return fmt.Errorf("parsing token: %w", err)
+	}
+
+	if !parsedToken.Valid {
+		return errors.New("invalid token")
+	}
+
+	fmt.Println("Token validated")
 
 	return nil
 }
