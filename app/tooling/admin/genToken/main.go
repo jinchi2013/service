@@ -133,7 +133,7 @@ func genToken() error {
 	keyFunc := func(t *jwt.Token) (any, error) {
 		kid, ok := t.Header["kid"]
 		if !ok {
-			return nil, errors.New("Missing key id in token header")
+			return nil, errors.New("missing key id in token header")
 		}
 		kidID, ok := kid.(string)
 
