@@ -65,7 +65,7 @@ func run(log *zap.SugaredLogger) error {
 		}
 		Auth struct {
 			KeysFolder string `conf:"default:zarf/keys/"`
-			activeKID  string `conf:"default:54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"`
+			ActiveKID  string `conf:"default:54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"`
 		}
 	}{
 		Version: conf.Version{
@@ -109,7 +109,7 @@ func run(log *zap.SugaredLogger) error {
 		return fmt.Errorf("reading keys: %w", err)
 	}
 
-	auth, err := auth.New(cfg.Auth.activeKID, ks)
+	auth, err := auth.New(cfg.Auth.ActiveKID, ks)
 	if err != nil {
 		return fmt.Errorf("constructing auth: %w", err)
 	}
