@@ -33,6 +33,13 @@ genToken:
 	go run app/tooling/admin/genToken/main.go
 
 # ==============================================================================
+# Running tests within the local computer
+
+# staticcheck -checks=all ./...
+test:
+	go test ./... -count=1
+
+# ==============================================================================
 # Building containers
 
 VERSION := 1.0
