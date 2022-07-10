@@ -33,6 +33,7 @@ func main() {
 	}
 	defer log.Sync()
 
+	// Run the service
 	if err := run(log); err != nil {
 		log.Errorw("startup", "ERROR", err)
 		log.Sync()
@@ -156,7 +157,7 @@ func run(log *zap.SugaredLogger) error {
 	// related endpoints. This includes the standard library endpoints.
 
 	// Construct the mux for the debug calls.
-	debugMux := handlers.DebugMux(build, log)
+	debugMux := handlers.DebugMux(build, log, db)
 
 	// Start the service listening for debug requests.
 	// Not concerned with shutting this down with load shedding.
@@ -181,6 +182,7 @@ func run(log *zap.SugaredLogger) error {
 		Shutdown: shutdown,
 		Log:      log,
 		Auth:     auth,
+		DB:       db,
 	})
 
 	// Construct a server to service the requests against the mux.
@@ -206,7 +208,7 @@ func run(log *zap.SugaredLogger) error {
 	// Blocking main and waiting for shutdown.
 	select {
 	case err := <-serverErrors:
-		return fmt.Errorf("Server error: %w", err)
+		return fmt.Errorf("server error: %w", err)
 	case sig := <-shutdown:
 		log.Infow("shutdown", "status", "shutdown started", "signal", sig)
 		defer log.Infow("shutdown", "status", "shutdown complete", "signal", sig)

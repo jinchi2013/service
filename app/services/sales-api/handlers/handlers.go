@@ -6,11 +6,12 @@ import (
 	"net/http/pprof"
 	"os"
 
-	"github.com/jinchi2013/service/app/services/sales-api/handlers/checkgrp"
+	"github.com/jinchi2013/service/app/services/sales-api/handlers/debug/checkgrp"
 	"github.com/jinchi2013/service/app/services/sales-api/handlers/v1/testgrp"
 	"github.com/jinchi2013/service/busniess/sys/auth"
 	"github.com/jinchi2013/service/busniess/web/mid"
 	"github.com/jinchi2013/service/foundation/web"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -32,13 +33,14 @@ func DebugStandardLibraryMux() *http.ServeMux {
 	return mux
 }
 
-func DebugMux(build string, log *zap.SugaredLogger) *http.ServeMux {
+func DebugMux(build string, log *zap.SugaredLogger, db *sqlx.DB) *http.ServeMux {
 	mux := DebugStandardLibraryMux()
 
 	// Regster debug check endpoint
 	cgh := checkgrp.Handlers{ // health check handlers group
 		Build: build,
 		Log:   log,
+		DB:    db,
 	}
 
 	mux.HandleFunc("/debug/readiness", cgh.Readiness)
@@ -52,6 +54,7 @@ type APIMuxConfig struct {
 	Shutdown chan os.Signal
 	Log      *zap.SugaredLogger
 	Auth     *auth.Auth
+	DB       *sqlx.DB
 }
 
 func APIMux(cfg APIMuxConfig) *web.App {

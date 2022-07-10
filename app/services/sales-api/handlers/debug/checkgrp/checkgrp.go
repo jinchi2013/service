@@ -1,10 +1,14 @@
 package checkgrp
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/jinchi2013/service/busniess/sys/database"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -12,21 +16,33 @@ import (
 type Handlers struct {
 	Build string
 	Log   *zap.SugaredLogger
+	DB    *sqlx.DB
 }
 
 // Readiness checks if the database is ready and if not will return a 500 status.
 // Do not respond by just returning an error because further up in the call
 // stack it will interpret that as a non-trusted error.
 func (h Handlers) Readiness(w http.ResponseWriter, r *http.Request) {
+	// Set 1 second timeout
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+	defer cancel()
+
+	status := "ok"
+
+	statusCode := http.StatusOK
+
+	if err := database.StatusCheck(ctx, h.DB); err != nil {
+		status = "not ready"
+		statusCode = http.StatusInternalServerError
+	}
+
 	data := struct {
 		Build  string
 		Status string `json:"status"`
 	}{
 		Build:  h.Build,
-		Status: "OK",
+		Status: status,
 	}
-
-	statusCode := http.StatusOK
 
 	if err := response(w, statusCode, data); err != nil {
 		h.Log.Errorw("readiness", "ERROR", err)
