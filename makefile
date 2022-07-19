@@ -19,7 +19,7 @@ SHELL := /bin/bash
 # curl -il -H "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/testauth
 
 # Database Access
-# dblab --host 0.0.0.0 --user postgres --db  postgres --pass postgres --ssl disable --port 5432 --driver postgress
+# dblab --host 0.0.0.0 --user postgres --db  postgres --pass postgres --ssl disable --port 5432 --driver postgres
 
 # ==============================================================================
 
@@ -28,6 +28,9 @@ run:
 
 admin:
 	go run app/tooling/admin/main.go
+
+migrate:
+	go run app/tooling/admin/migrate/main.go
 
 genKey:
 	go run app/tooling/admin/genKey/main.go
