@@ -76,7 +76,7 @@ func seed() error {
 		return fmt.Errorf("seed database: %w", err)
 	}
 
-	fmt.Println("seed data complete")
+	fmt.Println("========= seed data complete =========")
 
 	return nil
 }
