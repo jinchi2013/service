@@ -14,8 +14,9 @@ const (
 )
 
 type Claims struct {
-	jwt.StandardClaims
-	Roles []string `json:"roles"`
+	// jwt.RegisteredClaims // Would Replace StandardClaims
+	jwt.StandardClaims          // Deprecated by jwt
+	Roles              []string `json:"roles"`
 }
 
 // Authorized returns true if the claims has at least one of the provided roles

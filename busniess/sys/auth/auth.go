@@ -41,6 +41,8 @@ func New(activeKID string, keyLookup KeyLookup) (*Auth, error) {
 		return nil, errors.New("configuraing algorithm RS256")
 	}
 
+	// use kid in header to find privateKey in store
+	// privateKey could return the requested publich key foundation/keyStore/keyStore.go at line 127
 	keyFunc := func(t *jwt.Token) (any, error) {
 		kid, ok := t.Header["kid"]
 
@@ -64,7 +66,7 @@ func New(activeKID string, keyLookup KeyLookup) (*Auth, error) {
 	a := Auth{
 		parser:    parser,
 		activeKID: activeKID,
-		keyLookup: keyLookup,
+		keyLookup: keyLookup, // key to look up publicKey
 		keyFunc:   keyFunc,
 		method:    method,
 	}
