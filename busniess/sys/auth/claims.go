@@ -7,7 +7,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-//
 const (
 	RoleAdmin = "ADMIN"
 	RoleUser  = "USER"
