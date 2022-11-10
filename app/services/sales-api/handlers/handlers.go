@@ -7,7 +7,9 @@ import (
 	"os"
 
 	"github.com/jinchi2013/service/app/services/sales-api/handlers/debug/checkgrp"
-	"github.com/jinchi2013/service/app/services/sales-api/handlers/v1/testgrp"
+	v1TestGrp "github.com/jinchi2013/service/app/services/sales-api/handlers/v1/testgrp"
+	v1UserGrp "github.com/jinchi2013/service/app/services/sales-api/handlers/v1/usergrp"
+	userCore "github.com/jinchi2013/service/busniess/core/user"
 	"github.com/jinchi2013/service/busniess/sys/auth"
 	"github.com/jinchi2013/service/busniess/web/mid"
 	"github.com/jinchi2013/service/foundation/web"
@@ -76,7 +78,7 @@ func APIMux(cfg APIMuxConfig) *web.App {
 func v1(app *web.App, cfg APIMuxConfig) {
 	const version = "v1"
 	// Test handlers group
-	tgh := testgrp.Handlers{
+	tgh := v1TestGrp.Handlers{
 		Log: cfg.Log,
 	}
 	app.Handle(http.MethodGet, version, "/test", tgh.Test)
@@ -87,5 +89,53 @@ func v1(app *web.App, cfg APIMuxConfig) {
 		tgh.Test,
 		mid.Authenticate(cfg.Auth),
 		mid.Authorize("ADMIN"),
+	)
+
+	// Register user management and authenticate endpoints.
+	ugh := v1UserGrp.Handlers{
+		User: userCore.NewCore(cfg.Log, cfg.DB),
+		Auth: cfg.Auth,
+	}
+
+	app.Handle(http.MethodGet, version, "/users/token", ugh.Token)
+	app.Handle(
+		http.MethodGet,
+		version,
+		"/users/:page/:rows",
+		ugh.Query,
+		mid.Authenticate((cfg.Auth)),
+		mid.Authorize(auth.RoleAdmin),
+	)
+	app.Handle(
+		http.MethodGet,
+		version,
+		"/users/:id",
+		ugh.QueryByID,
+		mid.Authenticate((cfg.Auth)),
+		mid.Authorize(auth.RoleAdmin),
+	)
+	app.Handle(
+		http.MethodPost,
+		version,
+		"/users",
+		ugh.Create,
+		mid.Authenticate((cfg.Auth)),
+		mid.Authorize(auth.RoleAdmin),
+	)
+	app.Handle(
+		http.MethodPut,
+		version,
+		"/users/:id",
+		ugh.Update,
+		mid.Authenticate((cfg.Auth)),
+		mid.Authorize(auth.RoleAdmin),
+	)
+	app.Handle(
+		http.MethodDelete,
+		version,
+		"/users/:id",
+		ugh.Update,
+		mid.Authenticate((cfg.Auth)),
+		mid.Authorize(auth.RoleAdmin),
 	)
 }
