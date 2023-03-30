@@ -3,6 +3,8 @@ package tests
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
 	"io"
 	"os"
@@ -10,8 +12,10 @@ import (
 	"time"
 
 	"github.com/jinchi2013/service/busniess/data/schema"
+	"github.com/jinchi2013/service/busniess/sys/auth"
 	"github.com/jinchi2013/service/busniess/sys/database"
 	"github.com/jinchi2013/service/foundation/docker"
+	keystore "github.com/jinchi2013/service/foundation/keyStore"
 	"github.com/jinchi2013/service/foundation/logger"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
@@ -101,6 +105,43 @@ func NewUnit(t *testing.T, dbc DBContainer) (*zap.SugaredLogger, *sqlx.DB, func(
 	}
 
 	return log, db, teardown
+}
+
+// Test owns state for running and shutting down tests.
+type Test struct {
+	DB       *sqlx.DB
+	Log      *zap.SugaredLogger
+	Auth     *auth.Auth
+	Teardown func()
+
+	t *testing.T
+}
+
+// NewIntegration creates a database, seeds it, constructs an authenticator
+func NewIntegration(t *testing.T, dbc DBContainer) *Test {
+	log, db, teardown := NewUnit(t, dbc)
+
+	// Create RSA keys to enable authentication in our service
+	keyID := "4754d86b-7a6d-4df5-9c65-224741361492"
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	auth, err := auth.New(keyID, keystore.NewMap(map[string]*rsa.PrivateKey{keyID: privateKey}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test := Test{
+		DB:       db,
+		Log:      log,
+		Auth:     auth,
+		t:        t,
+		Teardown: teardown,
+	}
+
+	return &test
 }
 
 func StringPointer(s string) *string {

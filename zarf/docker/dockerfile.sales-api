@@ -1,5 +1,5 @@
 # Build the Go Binary.
-FROM golang:1.18 as build_sales-api
+FROM golang:1.19.1 as build_sales-api
 # disabled CGO
 ENV CGO_ENABLED 0
 # version of the appe
