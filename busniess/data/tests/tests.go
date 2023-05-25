@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jinchi2013/service/busniess/data/schema"
+	"github.com/jinchi2013/service/busniess/data/store/user"
 	"github.com/jinchi2013/service/busniess/sys/auth"
 	"github.com/jinchi2013/service/busniess/sys/database"
 	"github.com/jinchi2013/service/foundation/docker"
@@ -142,6 +143,23 @@ func NewIntegration(t *testing.T, dbc DBContainer) *Test {
 	}
 
 	return &test
+}
+
+func (test *Test) Token(email, pass string) string {
+	test.t.Log("Generating token for test ...")
+
+	store := user.NewStore(test.Log, test.DB)
+	claims, err := store.Authenticate(context.Background(), time.Now(), email, pass)
+	if err != nil {
+		test.t.Fatal(err)
+	}
+
+	token, err := test.Auth.GenerateToken(claims)
+	if err != nil {
+		test.t.Fatal(err)
+	}
+
+	return token
 }
 
 func StringPointer(s string) *string {
